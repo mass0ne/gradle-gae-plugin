@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.gae.task
 
-import org.gradle.api.GradleException
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
@@ -28,24 +27,17 @@ import org.gradle.api.tasks.TaskAction
 class GaeDownloadSdkTask extends ConventionTask {
     @InputFile File gaeSdkZipFile
     File explodedSdkDirectory
+    File gaeSdkRootDir
 
     @TaskAction
     void start() {
-        if(!getExplodedSdkDirectory().exists()) {
-            boolean success = getExplodedSdkDirectory().mkdirs()
+        setExplodedSdkDirectory( new File(getGaeSdkZipFile().parentFile.parent + File.separator + "sdks") )
+        setGaeSdkRootDir( new File(getExplodedSdkDirectory().canonicalPath + File.separator +
+                getGaeSdkZipFile().name - ".zip") )
 
-            if(!success) {
-                throw new GradleException("Could not create exploded Google App Engine SDK directory in ${getExplodedSdkDirectory().canonicalPath}")
-            }
-
+        if ( !getGaeSdkRootDir().exists() )
             ant.unzip(src: getGaeSdkZipFile(), dest: getExplodedSdkDirectory())
-        }
 
-        System.setProperty(AbstractGaeTask.APPENGINE_SDK_ROOT_SYS_PROP_KEY, getDownloadedSdkRoot())
-    }
-
-    private String getDownloadedSdkRoot() {
-        String filename = getGaeSdkZipFile().name.substring(0, getGaeSdkZipFile().name.lastIndexOf('.'))
-        getExplodedSdkDirectory().canonicalPath + System.getProperty('file.separator') + filename
+        System.setProperty(AbstractGaeTask.APPENGINE_SDK_ROOT_SYS_PROP_KEY, getGaeSdkRootDir().canonicalPath)
     }
 }

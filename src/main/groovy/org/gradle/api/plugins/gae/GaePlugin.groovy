@@ -64,9 +64,8 @@ class GaePlugin implements Plugin<Project> {
         GaePluginConvention gaePluginConvention = new GaePluginConvention()
         project.convention.plugins.gae = gaePluginConvention
 
-        File explodedSdkDirectory = getExplodedSdkDirectory(project)
         File explodedWarDirectory = getExplodedWarDirectory(project)
-        configureDownloadSdk(project, explodedSdkDirectory)
+        configureDownloadSdk(project)
         configureWebAppDir(project)
         configureAppConfig(project, gaePluginConvention)
         configureGaeExplodeWarTask(project, explodedWarDirectory)
@@ -86,10 +85,6 @@ class GaePlugin implements Plugin<Project> {
         configureGaeSdk(project, gaePluginConvention)
     }
 
-    private File getExplodedSdkDirectory(Project project) {
-        getBuildSubDirectory(project, 'exploded-gae-sdk')
-    }
-
     private File getExplodedWarDirectory(Project project) {
         getBuildSubDirectory(project, 'exploded-war')
     }
@@ -102,7 +97,7 @@ class GaePlugin implements Plugin<Project> {
         new File(explodedWarDirName.toString())
     }
 
-    private void configureDownloadSdk(Project project, File explodedSdkDirectory) {
+    private void configureDownloadSdk(Project project) {
         project.tasks.withType(GaeDownloadSdkTask.class).whenTaskAdded { GaeDownloadSdkTask gaeDownloadSdkTask ->
             gaeDownloadSdkTask.conventionMapping.map('gaeSdkZipFile') {
                 try {
@@ -112,7 +107,6 @@ class GaePlugin implements Plugin<Project> {
                     // make "gradle -t" happy in case we don't declare configuration!
                 }
             }
-            gaeDownloadSdkTask.conventionMapping.map(EXPLODED_SDK_DIR_CONVENTION_PARAM) { explodedSdkDirectory }
         }
 
         GaeDownloadSdkTask gaeDownloadSdkTask = project.tasks.add(GAE_DOWNLOAD_SDK, GaeDownloadSdkTask.class)
